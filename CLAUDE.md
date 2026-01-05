@@ -18,41 +18,85 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run the MCP server
 python server.py
 
-# Run all tests (36 tests)
-python -m pytest test_server.py -v
+# Run all tests (83 tests)
+python -m pytest test_server.py test_rules.py test_planner.py -v
 
-# Run a single test
-python -m pytest test_server.py::TestParseActivity::test_parses_running_activity -v
+# Run tests for specific module
+python -m pytest test_rules.py -v
+
+# Run morning audit (standalone mode)
+python daily_loop.py
+
+# Run morning audit with LLM
+python daily_loop.py --llm
 ```
 
-## Current MCP Tools
+## MCP Tools Reference
 
+### Data Tools
 | Tool | Purpose | Returns |
 |------|---------|---------|
 | `get_daily_metrics()` | RHR, Body Battery, Sleep Score | Formatted string |
 | `get_activities_range(start, end)` | Activity history | JSON array |
 | `get_personal_records()` | All PBs | JSON array |
 | `get_training_readiness(date)` | Recovery score, HRV, load | JSON object |
+| `refresh_athlete_profile()` | Generate baseline from 6mo history | JSON summary |
+
+### Compliance Tools
+| Tool | Purpose | Returns |
+|------|---------|---------|
+| `get_compliance_report(days)` | Weekly pillar compliance | JSON with deficits |
+
+### Planning Tools
+| Tool | Purpose | Returns |
+|------|---------|---------|
+| `get_planning_context()` | Full context for LLM planning | JSON object |
+| `get_weekly_plan()` | Current 7-day plan | JSON object |
+| `update_weekly_plan(plan_json)` | Save new/updated plan | Confirmation |
+
+### Suggestion Tools
+| Tool | Purpose | Returns |
+|------|---------|---------|
+| `propose_suggestion(type, desc, rationale, change)` | LLM proposes config change | Suggestion ID |
+| `list_pending_suggestions()` | See pending suggestions | JSON array |
+| `approve_suggestion(id)` | User approves suggestion | Confirmation |
+| `reject_suggestion(id, reason)` | User rejects suggestion | Confirmation |
 
 ## Architecture
 
 ```
-server.py
-├── Parsing functions (pure, testable)
-│   ├── parse_resting_heart_rate()
-│   ├── parse_sleep_score()
-│   ├── parse_body_battery()
-│   ├── parse_activity() / parse_activities()
-│   ├── parse_personal_records()
-│   └── parse_training_readiness()
-└── MCP tools (@mcp.tool() decorated)
-
-garmin_client.py
-└── get_garmin_client() - Auth with token caching in .garth/
-
-test_server.py
-└── Tests using real fixture data from test_fixtures.json
+coach-mcp/
+├── server.py              # MCP server with all tools
+├── garmin_client.py       # Garmin auth with token caching
+├── rules.py               # Compliance checker, safety rules
+├── planner.py             # Context builder, plan/suggestion management
+├── daily_loop.py          # Morning audit automation
+├── notifier.py            # Notification system (console/telegram)
+├── data/
+│   ├── athlete_profile.json   # Auto-refreshed from Garmin
+│   ├── training_config.json   # Events, blocks, pillars (user edits)
+│   ├── weekly_plan.json       # Current 7-day plan
+│   └── suggestions.json       # Pending LLM suggestions
+├── test_server.py         # Server tests (46 tests)
+├── test_rules.py          # Rules tests (23 tests)
+├── test_planner.py        # Planner tests (14 tests)
+└── test_fixtures.json     # Real Garmin API responses (gitignored)
 ```
+
+## Training Pillars
+
+Defined in `data/training_config.json`:
+- **Strength:** 2 sessions per week
+- **Mobility:** 90 minutes per week (yoga, pilates, stretching)
+- **Long Effort:** 1 session of 60+ minutes cardio per week
+
+## Activity Classification
+
+`rules.py:classify_activity()` categorizes activities:
+- **Strength:** strength_training, indoor_cardio, functional_strength
+- **Mobility:** yoga, pilates, stretching, breathwork
+- **Long Effort:** 60+ min running, cycling, swimming
+- **Hard:** ultimate_disc, hiit, interval_training, or avg_hr > 150
 
 ## Garmin API Response Structures
 
@@ -77,30 +121,33 @@ readiness['level']  # "PRIME", "HIGH", "MODERATE", "LOW"
 readiness['hrvStatus'], readiness['acuteLoad']
 ```
 
-## Implementation Plan (The Enforcer)
+## Implementation Status
 
-See full plan: `.claude/plans/reactive-questing-alpaca.md`
+All 4 sprints complete:
 
-### Sprint 1: Data Foundation ✅ (3/4 complete)
+### Sprint 1: Data Foundation
 - [x] `get_activities_range()` - Activity history
 - [x] `get_personal_records()` - PBs
 - [x] `get_training_readiness()` - Recovery metrics
-- [ ] `refresh_athlete_profile()` - Generate baseline from 6mo history
+- [x] `refresh_athlete_profile()` - Generate baseline from 6mo history
+- [x] `calculate_baseline()` - Weekly volume and activity distribution
 
-### Sprint 2: Rule Engine (pending)
-- [ ] `training_config.json` schema (events, blocks, pillars)
-- [ ] `check_weekly_compliance()` function
-- [ ] `get_compliance_report()` tool
+### Sprint 2: Rule Engine
+- [x] `training_config.json` schema (events, blocks, pillars)
+- [x] `classify_activity()` - Categorize by pillar
+- [x] `check_weekly_compliance()` - Validate pillars met
+- [x] `check_safety_rules()` - Consecutive hard days, post-race rest
+- [x] `get_compliance_report()` MCP tool
 
-### Sprint 3: LLM Planning (pending)
-- [ ] `build_planning_context()` function
-- [ ] `generate_weekly_plan()` tool (LLM-driven)
-- [ ] Suggestion system (LLM proposes, user approves)
+### Sprint 3: LLM Planning
+- [x] `build_planning_context()` - Assemble all context for LLM
+- [x] Planning MCP tools (get/update weekly plan)
+- [x] Suggestion system (propose, list, approve, reject)
 
-### Sprint 4: Automation (pending)
-- [ ] `daily_loop.py` - Morning audit script
-- [ ] Task Scheduler setup (05:00 daily)
-- [ ] Telegram notifier
+### Sprint 4: Automation
+- [x] `daily_loop.py` - Morning audit script
+- [x] `notifier.py` - Console/Telegram notifications
+- [x] LLM integration with `--llm` flag
 
 ## Environment
 
@@ -108,7 +155,9 @@ Requires `.env` with:
 ```
 GARMIN_EMAIL=your@email.com
 GARMIN_PASSWORD=yourpassword
-ANTHROPIC_API_KEY=sk-ant-xxx  # For LLM integration (Sprint 3+)
+ANTHROPIC_API_KEY=sk-ant-xxx  # For LLM integration
+TELEGRAM_BOT_TOKEN=xxx        # Optional, for notifications
+TELEGRAM_CHAT_ID=xxx          # Optional, for notifications
 ```
 
 ## Testing Pattern
@@ -117,4 +166,12 @@ Tests use real API responses captured in `test_fixtures.json`. When adding new t
 1. Create parsing function (pure, no I/O)
 2. Add MCP tool with `@mcp.tool()` decorator
 3. Write tests with sample data matching Garmin structure
-4. Run: `python -m pytest test_server.py -v`
+4. Run: `python -m pytest -v`
+
+## The Enforcer Personality
+
+The LLM coach persona (defined in `daily_loop.py`):
+- Direct and honest - no sugar-coating
+- Evidence-based - always cite the data
+- Supportive but firm - care about the athlete's goals
+- Action-oriented - every message should guide the next step

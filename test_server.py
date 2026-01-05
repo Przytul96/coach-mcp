@@ -14,6 +14,7 @@ from server import (
     parse_activities,
     parse_training_readiness,
     parse_personal_records,
+    calculate_baseline,
 )
 
 
@@ -412,3 +413,149 @@ class TestGetTrainingReadinessIntegration:
         parsed = json.loads(result)
 
         assert 'error' in parsed
+
+
+# Sample parsed activities for baseline testing
+SAMPLE_PARSED_ACTIVITIES = [
+    {'date': '2025-11-25', 'type': 'running', 'duration_mins': 45.0},
+    {'date': '2025-11-26', 'type': 'strength_training', 'duration_mins': 60.0},
+    {'date': '2025-11-28', 'type': 'running', 'duration_mins': 30.0},
+    {'date': '2025-12-01', 'type': 'running', 'duration_mins': 60.0},
+    {'date': '2025-12-02', 'type': 'cycling', 'duration_mins': 90.0},
+    {'date': '2025-12-03', 'type': 'strength_training', 'duration_mins': 45.0},
+    {'date': '2025-12-05', 'type': 'running', 'duration_mins': 75.0},
+]
+
+
+class TestCalculateBaseline:
+    def test_calculates_weekly_volume(self):
+        result = calculate_baseline(SAMPLE_PARSED_ACTIVITIES)
+
+        # Week 1 (Nov 25-28): 45 + 60 + 30 = 135 mins = 2.25 hrs
+        # Week 2 (Dec 1-5): 60 + 90 + 45 + 75 = 270 mins = 4.5 hrs
+        # Avg = (2.25 + 4.5) / 2 = 3.375 hrs
+        assert result['avg_weekly_volume_hrs'] == 3.4  # Rounded to 1 decimal
+        assert result['max_weekly_volume_hrs'] == 4.5
+
+    def test_counts_activity_types(self):
+        result = calculate_baseline(SAMPLE_PARSED_ACTIVITIES)
+
+        assert result['activity_distribution']['running'] == 4
+        assert result['activity_distribution']['strength_training'] == 2
+        assert result['activity_distribution']['cycling'] == 1
+
+    def test_calculates_typical_week(self):
+        result = calculate_baseline(SAMPLE_PARSED_ACTIVITIES)
+
+        # 4 runs over 2 weeks = 2.0 per week
+        # 2 strength over 2 weeks = 1.0 per week
+        # 1 cycling over 2 weeks = 0.5 per week
+        assert result['typical_week']['running'] == 2.0
+        assert result['typical_week']['strength_training'] == 1.0
+        assert result['typical_week']['cycling'] == 0.5
+
+    def test_tracks_weeks_analyzed(self):
+        result = calculate_baseline(SAMPLE_PARSED_ACTIVITIES)
+
+        assert result['weeks_analyzed'] == 2
+        assert result['total_activities'] == 7
+
+    def test_handles_empty_list(self):
+        result = calculate_baseline([])
+
+        assert result['avg_weekly_volume_hrs'] == 0
+        assert result['max_weekly_volume_hrs'] == 0
+        assert result['activity_distribution'] == {}
+        assert result['typical_week'] == {}
+        assert result['total_activities'] == 0
+
+    def test_handles_missing_duration(self):
+        activities = [
+            {'date': '2025-12-01', 'type': 'running', 'duration_mins': None},
+            {'date': '2025-12-02', 'type': 'running', 'duration_mins': 30.0},
+        ]
+        result = calculate_baseline(activities)
+
+        # None should be treated as 0
+        assert result['avg_weekly_volume_hrs'] == 0.5  # 30 mins = 0.5 hrs
+
+    def test_handles_invalid_date(self):
+        activities = [
+            {'date': 'invalid-date', 'type': 'running', 'duration_mins': 30.0},
+            {'date': '2025-12-01', 'type': 'running', 'duration_mins': 60.0},
+        ]
+        result = calculate_baseline(activities)
+
+        # Invalid date should be skipped for week calculation
+        assert result['total_activities'] == 2
+        assert result['weeks_analyzed'] == 1
+
+
+class TestRefreshAthleteProfileIntegration:
+    @patch('server.get_garmin_client')
+    def test_returns_success_summary(self, mock_get_client, tmp_path):
+        from server import refresh_athlete_profile, DATA_DIR
+        import server
+
+        # Temporarily redirect DATA_DIR to tmp_path
+        original_data_dir = server.DATA_DIR
+        server.DATA_DIR = tmp_path
+
+        try:
+            mock_client = Mock()
+            mock_client.get_activities_by_date.return_value = [
+                SAMPLE_RUNNING_ACTIVITY,
+                SAMPLE_STRENGTH_ACTIVITY,
+            ]
+            mock_client.get_personal_record.return_value = SAMPLE_PR_DATA
+            mock_get_client.return_value = mock_client
+
+            result = refresh_athlete_profile()
+            parsed = json.loads(result)
+
+            assert parsed['status'] == 'success'
+            assert parsed['activities_analyzed'] == 2
+            assert parsed['personal_records_count'] == 3
+            assert 'avg_weekly_volume_hrs' in parsed
+        finally:
+            server.DATA_DIR = original_data_dir
+
+    @patch('server.get_garmin_client')
+    def test_creates_profile_file(self, mock_get_client, tmp_path):
+        from server import refresh_athlete_profile
+        import server
+
+        original_data_dir = server.DATA_DIR
+        server.DATA_DIR = tmp_path
+
+        try:
+            mock_client = Mock()
+            mock_client.get_activities_by_date.return_value = [SAMPLE_RUNNING_ACTIVITY]
+            mock_client.get_personal_record.return_value = SAMPLE_PR_DATA
+            mock_get_client.return_value = mock_client
+
+            refresh_athlete_profile()
+
+            profile_path = tmp_path / 'athlete_profile.json'
+            assert profile_path.exists()
+
+            with open(profile_path) as f:
+                profile = json.load(f)
+
+            assert 'baseline' in profile
+            assert 'personal_records' in profile
+            assert 'manual' in profile
+            assert 'last_updated' in profile
+        finally:
+            server.DATA_DIR = original_data_dir
+
+    @patch('server.get_garmin_client')
+    def test_handles_api_error(self, mock_get_client):
+        from server import refresh_athlete_profile
+
+        mock_get_client.side_effect = Exception("Auth failed")
+        result = refresh_athlete_profile()
+        parsed = json.loads(result)
+
+        assert 'error' in parsed
+        assert 'Auth failed' in parsed['error']
