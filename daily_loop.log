@@ -1,0 +1,228 @@
+2026-01-05 17:26:17,689 - INFO - ==================================================
+2026-01-05 17:26:17,689 - INFO - Starting morning audit
+2026-01-05 17:26:17,690 - INFO - ==================================================
+2026-01-05 17:26:17,690 - INFO - Step 1: INGEST - Pulling fresh data
+2026-01-05 17:26:17,690 - INFO - Loading saved session...
+2026-01-05 17:26:18,319 - ERROR - API call failed for path '/usersummary-service/usersummary/daily/None': Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05 (status=403)
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 146, in request
+    self.last_resp.raise_for_status()
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garminconnect\__init__.py", line 305, in connectapi
+    return self.garth.connectapi(path, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 189, in connectapi
+    resp = self.request(method, "connectapi", path, api=True, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 148, in request
+    raise GarthHTTPError(
+garth.exc.GarthHTTPError: Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+2026-01-05 17:26:18,323 - WARNING - Session invalid or expired: API client error (403): Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05. Logging in fresh...
+2026-01-05 17:26:24,033 - INFO - New session saved.
+2026-01-05 17:26:24,795 - INFO - Daily metrics: Status for 2026-01-05: RHR=44bpm, Body Battery=57/100, Sleep Score=N/A
+2026-01-05 17:26:24,795 - INFO - Step 2: AUDIT - Comparing actual vs planned
+2026-01-05 17:26:24,795 - INFO - Audit result: {'status': 'no_plan', 'message': 'No weekly plan found'}
+2026-01-05 17:26:24,795 - INFO - Step 3: Checking compliance
+2026-01-05 17:26:24,796 - INFO - Loading saved session...
+2026-01-05 17:26:25,446 - ERROR - API call failed for path '/usersummary-service/usersummary/daily/None': Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05 (status=403)
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 146, in request
+    self.last_resp.raise_for_status()
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garminconnect\__init__.py", line 305, in connectapi
+    return self.garth.connectapi(path, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 189, in connectapi
+    resp = self.request(method, "connectapi", path, api=True, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 148, in request
+    raise GarthHTTPError(
+garth.exc.GarthHTTPError: Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+2026-01-05 17:26:25,447 - WARNING - Session invalid or expired: API client error (403): Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05. Logging in fresh...
+2026-01-05 17:26:29,254 - INFO - New session saved.
+2026-01-05 17:26:29,969 - INFO - Compliance: {
+  "period": {
+    "start": "2025-12-29",
+    "end": "2026-01-05",
+    "days": 7
+  },
+  "compliance": {
+    "strength": {
+      "required": 2,
+      "completed": 0,
+      "deficit": 2,
+      "compliant": false
+    },
+    "mobility": {
+      "required": 90,
+      "completed": 52.699999999999996,
+      "deficit": 37.300000000000004,
+      "compliant": false
+    },
+    "long_effort": {
+      "required": 1,
+      "completed": 4,
+      "deficit": 0,
+      "compliant": true
+    },
+    "volume": {
+      "target_hrs": 6.0,
+      "actual_hrs": 15.4,
+      "percent": 257,
+      "compliant": true
+    },
+    "overall_compliant": false,
+    "deficits": [
+      "strength",
+      "mobility"
+    ]
+  },
+  "safety": {
+    "safe": true,
+    "warnings": [],
+    "blocked": []
+  },
+  "upcoming_events": [
+    {
+      "date": "2026-02-08",
+      "name": "Park Run 5K",
+      "priority": "C",
+      "distance_km": 5,
+      "target_time": null,
+      "notes": "Training race - tempo effort",
+      "days_until": 34
+    }
+  ],
+  "activities_count": 12
+}
+2026-01-05 17:26:29,969 - INFO - Step 4: Building planning context
+2026-01-05 17:26:29,970 - INFO - Loading saved session...
+2026-01-05 17:26:30,609 - ERROR - API call failed for path '/usersummary-service/usersummary/daily/None': Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05 (status=403)
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 146, in request
+    self.last_resp.raise_for_status()
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garminconnect\__init__.py", line 305, in connectapi
+    return self.garth.connectapi(path, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 189, in connectapi
+    resp = self.request(method, "connectapi", path, api=True, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 148, in request
+    raise GarthHTTPError(
+garth.exc.GarthHTTPError: Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+2026-01-05 17:26:30,610 - WARNING - Session invalid or expired: API client error (403): Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05. Logging in fresh...
+2026-01-05 17:26:34,260 - INFO - New session saved.
+2026-01-05 17:26:36,011 - INFO - Step 5: Generating morning brief
+2026-01-05 17:26:36,011 - INFO - ==================================================
+2026-01-05 17:26:36,011 - INFO - Morning audit complete
+2026-01-05 17:26:36,011 - INFO - ==================================================
+2026-01-05 17:30:38,628 - INFO - ==================================================
+2026-01-05 17:30:38,628 - INFO - Starting morning audit
+2026-01-05 17:30:38,628 - INFO - ==================================================
+2026-01-05 17:30:38,629 - INFO - Step 1: INGEST - Pulling fresh data
+2026-01-05 17:30:38,629 - INFO - Loading saved session...
+2026-01-05 17:30:39,239 - ERROR - API call failed for path '/usersummary-service/usersummary/daily/None': Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05 (status=403)
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 146, in request
+    self.last_resp.raise_for_status()
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garminconnect\__init__.py", line 305, in connectapi
+    return self.garth.connectapi(path, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 189, in connectapi
+    resp = self.request(method, "connectapi", path, api=True, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\schoonie\Documents\coach-mcp\.venv\Lib\site-packages\garth\http.py", line 148, in request
+    raise GarthHTTPError(
+garth.exc.GarthHTTPError: Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05
+2026-01-05 17:30:39,241 - WARNING - Session invalid or expired: API client error (403): Error in request: 403 Client Error: Forbidden for url: https://connectapi.garmin.com/usersummary-service/usersummary/daily/None?calendarDate=2026-01-05. Logging in fresh...
+2026-01-05 17:30:44,261 - INFO - New session saved.
+2026-01-05 17:30:44,902 - INFO - Daily metrics: Status for 2026-01-05: RHR=44bpm, Body Battery=57/100, Sleep Score=N/A
+2026-01-05 17:30:44,902 - INFO - Step 2: AUDIT - Comparing actual vs planned
+2026-01-05 17:30:44,902 - INFO - Audit result: {'status': 'no_plan', 'message': 'No weekly plan found'}
+2026-01-05 17:30:44,902 - INFO - Step 3: Checking compliance
+2026-01-05 17:30:46,488 - INFO - Compliance: {
+  "period": {
+    "start": "2025-12-29",
+    "end": "2026-01-05",
+    "days": 7
+  },
+  "compliance": {
+    "strength": {
+      "required": 2,
+      "completed": 0,
+      "deficit": 2,
+      "compliant": false
+    },
+    "mobility": {
+      "required": 90,
+      "completed": 52.699999999999996,
+      "deficit": 37.300000000000004,
+      "compliant": false
+    },
+    "long_effort": {
+      "required": 1,
+      "completed": 4,
+      "deficit": 0,
+      "compliant": true
+    },
+    "volume": {
+      "target_hrs": 6.0,
+      "actual_hrs": 15.4,
+      "percent": 257,
+      "compliant": true
+    },
+    "overall_compliant": false,
+    "deficits": [
+      "strength",
+      "mobility"
+    ]
+  },
+  "safety": {
+    "safe": true,
+    "warnings": [],
+    "blocked": []
+  },
+  "upcoming_events": [
+    {
+      "date": "2026-02-08",
+      "name": "Park Run 5K",
+      "priority": "C",
+      "distance_km": 5,
+      "target_time": null,
+      "notes": "Training race - tempo effort",
+      "days_until": 34
+    }
+  ],
+  "activities_count": 12
+}
+2026-01-05 17:30:46,488 - INFO - Step 4: Building planning context
+2026-01-05 17:30:48,114 - INFO - Step 5: Generating morning brief
+2026-01-05 17:30:48,114 - INFO - ==================================================
+2026-01-05 17:30:48,115 - INFO - Morning audit complete
+2026-01-05 17:30:48,115 - INFO - ==================================================
