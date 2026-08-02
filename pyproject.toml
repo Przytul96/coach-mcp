@@ -41,6 +41,7 @@ dependencies = [
     "python-dotenv>=1.0,<2",
     "requests>=2.31,<3",
     "anthropic>=0.109.1,<1",
+    "garth[cli]>=0.8.0",
 ]
 
 [project.urls]
