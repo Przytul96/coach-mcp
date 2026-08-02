@@ -293,3 +293,4 @@ websockets==17.0.1
     # via fastmcp-slim
 wrapt==2.3.0
     # via opentelemetry-instrumentation
+fastapi
