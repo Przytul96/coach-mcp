@@ -1,9 +1,8 @@
 import os
-import garth
 from garminconnect import Garmin
 from fastmcp import FastMCP
 
-# Utworzenie serwera MCP, zeby FastMCP nie zgłaszał błędu
+# Utworzenie serwera FastMCP
 mcp = FastMCP("Garmin MCP")
 
 email = os.environ.get("GARMIN_EMAIL")
@@ -16,8 +15,8 @@ if email and password:
         client = Garmin(email, password)
         client.login()
         
-        # Garth przechowuje aktywną sesję w garth.client
-        token_b64 = garth.client.dumps()
+        # Pobieramy zrzut tokenów bezpośrednio z obiektu client.garth
+        token_b64 = client.garth.dumps()
         print("=== OTO TWOJ POPRAWNY TOKEN (SKOPIUJ GO) ===", flush=True)
         print(token_b64, flush=True)
         print("==========================================\n", flush=True)
