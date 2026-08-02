@@ -1,7 +1,8 @@
 import os
 import json
 from fastmcp import FastMCP
-from garminconnect import Garmin, garth
+from garminconnect import Garmin
+import garth
 
 mcp = FastMCP("Garmin MCP")
 
@@ -10,14 +11,13 @@ def get_garmin_client():
     if not token_str:
         raise ValueError("Brak GARMINTOKENS w środowisku!")
     
-    # Próba załadowania tokenów do wbudowanej sesji garth
+    # Ładowanie zrzutu tokenów z garth
     try:
         garth.client.loads(token_str)
         client = Garmin()
         client.login()
         return client
     except Exception:
-        # Jeśli podano surowy token, przypisujemy go bezpośrednio
         garth.client.token = token_str
         client = Garmin()
         return client
@@ -26,7 +26,7 @@ def get_garmin_client():
 def status() -> str:
     try:
         client = get_garmin_client()
-        return f"Połączono pomyślnie z Garmin Connect! Użytkownik: {client.get_full_name()}"
+        return "Połączono pomyślnie z Garmin Connect!"
     except Exception as e:
         return f"Błąd połączenia: {str(e)}"
 
