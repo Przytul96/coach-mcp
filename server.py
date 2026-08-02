@@ -1,9 +1,7 @@
 import os
 import json
-import base64
 from fastmcp import FastMCP
-from garminconnect import Garmin
-import garth
+from garminconnect import Garmin, garth
 
 mcp = FastMCP("Garmin MCP")
 
@@ -12,14 +10,14 @@ def get_garmin_client():
     if not token_str:
         raise ValueError("Brak GARMINTOKENS w środowisku!")
     
-    # Próba załadowania zrzutu sesji garth
+    # Próba załadowania tokenów do wbudowanej sesji garth
     try:
         garth.client.loads(token_str)
         client = Garmin()
         client.login()
         return client
     except Exception:
-        # Jeśli podano surowy token/JWT, logujemy sesję bezpośrednio w garth
+        # Jeśli podano surowy token, przypisujemy go bezpośrednio
         garth.client.token = token_str
         client = Garmin()
         return client
@@ -28,11 +26,9 @@ def get_garmin_client():
 def status() -> str:
     try:
         client = get_garmin_client()
-        # Wywołujemy proste zapytanie sprawdzające status sesji
-        profile = client.get_user_summary("2026-08-02")
-        return "Połączono pomyślnie z Garmin Connect! Integracja działa."
+        return f"Połączono pomyślnie z Garmin Connect! Użytkownik: {client.get_full_name()}"
     except Exception as e:
-        return f"Błąd połączenia z Garmin: {str(e)}"
+        return f"Błąd połączenia: {str(e)}"
 
 @mcp.tool()
 def get_user_summary(date_str: str) -> str:
