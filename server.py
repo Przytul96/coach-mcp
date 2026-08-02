@@ -16,7 +16,6 @@ def get_garmin_client():
     try:
         garth.client.loads(token_str)
     except Exception:
-        # Rozpoznanie czy wklejono sam token, czy cały obiekt JSON z przeglądarki
         token_jwt = token_str
         if token_str.startswith("{"):
             try:
@@ -24,7 +23,6 @@ def get_garmin_client():
             except Exception:
                 pass
         
-        # Tworzymy specjalną atrapę tokena, żeby oszukać bibliotekę
         class DummyToken:
             def __init__(self, jwt):
                 self.access_token = jwt
@@ -33,10 +31,18 @@ def get_garmin_client():
         garth.client.oauth2_token = DummyToken(token_jwt)
         garth.client.domain = "garmin.com"
         
-    # KLUCZOWA POPRAWKA: Wymuszamy pobranie profilu, aby ustawić Display Name
-    client.get_preferences()
-    client.get_social_profile()
-    
+    # POPRAWKA: Używamy wbudowanego klienta garth do pobrania profilu
+    try:
+        profile = garth.client.get("connectapi", "/userprofile-service/socialProfile")
+        # Ręcznie przypisujemy dane do klienta Garmin
+        client.display_name = profile.get("displayName")
+        client.full_name = profile.get("fullName")
+    except Exception as e:
+        raise ValueError(f"Nie udało się pobrać profilu: {str(e)}")
+        
+    if not client.display_name:
+        raise ValueError("Profil pobrany, ale nazwa (displayName) jest pusta!")
+        
     return client
 
 @mcp.tool()
@@ -44,7 +50,7 @@ def status() -> str:
     """Sprawdza status połączenia z kontem Garmin."""
     try:
         client = get_garmin_client()
-        return f"Połączono pomyślnie! Zalogowany użytkownik: {client.get_full_name()}"
+        return f"Połączono pomyślnie! Zalogowany użytkownik: {client.full_name} ({client.display_name})"
     except Exception as e:
         return f"Błąd połączenia: {str(e)}"
 
