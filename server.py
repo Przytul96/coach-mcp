@@ -1,9 +1,19 @@
-"""Thin shim for repo checkouts — the server lives in coach/server.py.
+import os
+import garth
+from garminconnect import Garmin
 
-`python server.py` keeps working; installed deployments use the
-`coach-mcp` console script (see [project.scripts] in pyproject.toml).
-"""
-from coach.server import main, mcp  # noqa: F401 — mcp re-exported for tests/tooling
+email = os.environ.get("GARMIN_EMAIL")
+password = os.environ.get("GARMIN_PASSWORD")
 
-if __name__ == "__main__":
-    main()
+if email and password:
+    try:
+        print("\n==========================================")
+        print("=== PROBA LOGOWANIA NA RENDERZE ===")
+        client = Garmin(email, password)
+        client.login()
+        token_b64 = garth.client.dumps()
+        print("=== OTO TWOJ POPRAWNY TOKEN (SKOPIUJ GO) ===")
+        print(token_b64)
+        print("==========================================\n")
+    except Exception as e:
+        print(f"Blad logowania: {e}")
