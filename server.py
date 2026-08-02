@@ -1,5 +1,5 @@
 import os
-import garth
+import json
 from garminconnect import Garmin
 
 email = os.environ.get("GARMIN_EMAIL")
@@ -11,7 +11,9 @@ if email and password:
         print("=== PROBA LOGOWANIA NA RENDERZE ===")
         client = Garmin(email, password)
         client.login()
-        token_b64 = garth.client.dumps()
+        
+        # Pobieramy tokeny bezposrednio z obiektu garminconnect
+        token_b64 = client.garth.dumps()
         print("=== OTO TWOJ POPRAWNY TOKEN (SKOPIUJ GO) ===")
         print(token_b64)
         print("==========================================\n")
