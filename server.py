@@ -1,9 +1,14 @@
 import os
 import json
-from fastmcp import FastMCP
+from fastapi import FastAPI, HTTPException
 from garminconnect import Garmin
 
-mcp = FastMCP("Garmin MCP")
+# Inicjalizacja standardowego API zamiast MCP
+app = FastAPI(
+    title="Garmin API dla ChatGPT", 
+    description="API do pobierania danych z Garmin Connect", 
+    version="1.0.0"
+)
 
 def get_garmin_client():
     token_str = os.environ.get("GARMINTOKENS")
@@ -31,10 +36,8 @@ def get_garmin_client():
         garth.client.oauth2_token = DummyToken(token_jwt)
         garth.client.domain = "garmin.com"
         
-    # POPRAWKA: Używamy wbudowanego klienta garth do pobrania profilu
     try:
         profile = garth.client.get("connectapi", "/userprofile-service/socialProfile")
-        # Ręcznie przypisujemy dane do klienta Garmin
         client.display_name = profile.get("displayName")
         client.full_name = profile.get("fullName")
     except Exception as e:
@@ -45,71 +48,65 @@ def get_garmin_client():
         
     return client
 
-@mcp.tool()
-def status() -> str:
+@app.get("/status")
+def get_status():
     """Sprawdza status połączenia z kontem Garmin."""
     try:
         client = get_garmin_client()
-        return f"Połączono pomyślnie! Zalogowany użytkownik: {client.full_name} ({client.display_name})"
+        return {"status": "success", "message": f"Połączono: {client.full_name} ({client.display_name})"}
     except Exception as e:
-        return f"Błąd połączenia: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
 
-@mcp.tool()
-def get_user_summary(date_str: str) -> str:
-    """Pobiera ogólne podsumowanie dnia (kroki, spalone kalorie, tętno) dla daty YYYY-MM-DD."""
+@app.get("/summary")
+def get_user_summary(date_str: str):
+    """Pobiera ogólne podsumowanie dnia (kroki, kalorie, tętno) dla daty YYYY-MM-DD."""
     try:
         client = get_garmin_client()
-        stats = client.get_user_summary(date_str)
-        return json.dumps(stats, ensure_ascii=False)
+        return client.get_user_summary(date_str)
     except Exception as e:
-        return f"Błąd: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
 
-@mcp.tool()
-def get_activities(start_date: str, end_date: str) -> str:
+@app.get("/activities")
+def get_activities(start_date: str, end_date: str):
     """Pobiera listę treningów i aktywności w podanym zakresie dat YYYY-MM-DD."""
     try:
         client = get_garmin_client()
-        activities = client.get_activities_by_date(start_date, end_date)
-        return json.dumps(activities, ensure_ascii=False)
+        return client.get_activities_by_date(start_date, end_date)
     except Exception as e:
-        return f"Błąd: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
 
-@mcp.tool()
-def get_sleep_data(date_str: str) -> str:
-    """Pobiera szczegółowe dane o śnie (fazy snu, ocena) dla daty YYYY-MM-DD."""
+@app.get("/sleep")
+def get_sleep_data(date_str: str):
+    """Pobiera dane o śnie dla daty YYYY-MM-DD."""
     try:
         client = get_garmin_client()
-        sleep_data = client.get_sleep_data(date_str)
-        return json.dumps(sleep_data, ensure_ascii=False)
+        return client.get_sleep_data(date_str)
     except Exception as e:
-        return f"Błąd: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
 
-@mcp.tool()
-def get_body_battery(date_str: str) -> str:
-    """Pobiera dane Body Battery (poziom energii, ładowanie/rozładowanie) dla daty YYYY-MM-DD."""
+@app.get("/bodybattery")
+def get_body_battery(date_str: str):
+    """Pobiera dane Body Battery dla daty YYYY-MM-DD."""
     try:
         client = get_garmin_client()
-        bb_data = client.get_body_battery(date_str)
-        return json.dumps(bb_data, ensure_ascii=False)
+        return client.get_body_battery(date_str)
     except Exception as e:
-        return f"Błąd: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
 
-@mcp.tool()
-def get_training_status(date_str: str) -> str:
-    """Pobiera status treningowy (VO2Max, obciążenie, gotowość) dla daty YYYY-MM-DD."""
+@app.get("/trainingstatus")
+def get_training_status(date_str: str):
+    """Pobiera status treningowy dla daty YYYY-MM-DD."""
     try:
         client = get_garmin_client()
-        status_data = client.get_training_status(date_str)
-        return json.dumps(status_data, ensure_ascii=False)
+        return client.get_training_status(date_str)
     except Exception as e:
-        return f"Błąd: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
 
-@mcp.tool()
-def get_hrv_data(date_str: str) -> str:
-    """Pobiera dane HRV (zmienność rytmu zatokowego) dla daty YYYY-MM-DD."""
+@app.get("/hrv")
+def get_hrv_data(date_str: str):
+    """Pobiera dane HRV dla daty YYYY-MM-DD."""
     try:
         client = get_garmin_client()
-        hrv = client.get_hrv_data(date_str)
-        return json.dumps(hrv, ensure_ascii=False)
+        return client.get_hrv_data(date_str)
     except Exception as e:
-        return f"Błąd: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
