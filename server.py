@@ -11,16 +11,33 @@ def get_garmin_client():
         raise ValueError("Brak GARMINTOKENS w środowisku Rendera!")
     
     import garth
+    client = Garmin()
     
     try:
         garth.client.loads(token_str)
-        client = Garmin()
-        client.login()
-        return client
     except Exception:
-        garth.client.token = token_str
-        client = Garmin()
-        return client
+        # Rozpoznanie czy wklejono sam token, czy cały obiekt JSON z przeglądarki
+        token_jwt = token_str
+        if token_str.startswith("{"):
+            try:
+                token_jwt = json.loads(token_str).get("access_token", token_str)
+            except Exception:
+                pass
+        
+        # Tworzymy specjalną atrapę tokena, żeby oszukać bibliotekę
+        class DummyToken:
+            def __init__(self, jwt):
+                self.access_token = jwt
+                self.token_type = "Bearer"
+                
+        garth.client.oauth2_token = DummyToken(token_jwt)
+        garth.client.domain = "garmin.com"
+        
+    # KLUCZOWA POPRAWKA: Wymuszamy pobranie profilu, aby ustawić Display Name
+    client.get_preferences()
+    client.get_social_profile()
+    
+    return client
 
 @mcp.tool()
 def status() -> str:
