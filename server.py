@@ -1,5 +1,6 @@
 import os
 import json
+import garth
 from fastmcp import FastMCP
 from garminconnect import Garmin
 
@@ -10,36 +11,23 @@ def get_garmin_client():
     if not token_str:
         raise ValueError("Brak GARMINTOKENS w środowisku Rendera!")
     
-    import garth
-    client = Garmin()
-    
+    # 1. Ładowanie tokena bezpośrednio do garth
     try:
         garth.client.loads(token_str)
-    except Exception:
-        token_jwt = token_str
-        if token_str.startswith("{"):
-            try:
-                token_jwt = json.loads(token_str).get("access_token", token_str)
-            except Exception:
-                pass
-        
-        class DummyToken:
-            def __init__(self, jwt):
-                self.access_token = jwt
-                self.token_type = "Bearer"
-                
-        garth.client.oauth2_token = DummyToken(token_jwt)
-        garth.client.domain = "garmin.com"
-        
+    except Exception as e:
+        raise ValueError(f"Nieprawidłowy format GARMINTOKENS: {str(e)}")
+    
+    # 2. Inicjalizacja Garmin Connect z użyciem załadowanej sesji garth
+    client = Garmin()
+    client.garth = garth.client
+    
+    # 3. Pobranie nazwy użytkownika do weryfikacji połączenia
     try:
         profile = garth.client.get("connectapi", "/userprofile-service/socialProfile")
         client.display_name = profile.get("displayName")
         client.full_name = profile.get("fullName")
     except Exception as e:
-        raise ValueError(f"Nie udało się pobrać profilu: {str(e)}")
-        
-    if not client.display_name:
-        raise ValueError("Profil pobrany, ale nazwa (displayName) jest pusta!")
+        raise ValueError(f"Nie udało się pobrać profilu Garmina (błąd autoryzacji): {str(e)}")
         
     return client
 
