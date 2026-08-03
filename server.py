@@ -59,6 +59,16 @@ def get_activities(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
+def get_activity_details(activity_id: str) -> str:
+    """Pobiera szczegółowe metryki pojedynczej aktywności (Moc, Strefy HR/Mocy, Balans L/R, TSS, NP) na podstawie jej activity_id."""
+    try:
+        client = get_garmin_client()
+        details = client.get_activity_details(activity_id)
+        return json.dumps(details, ensure_ascii=False)
+    except Exception as e:
+        return f"Błąd: {str(e)}"
+
+@mcp.tool()
 def get_user_summary_history(start_date: str, end_date: str) -> str:
     """Pobiera ogólne podsumowanie dnia (kroki, tętno) w zakresie YYYY-MM-DD (max 31 dni)."""
     try:
