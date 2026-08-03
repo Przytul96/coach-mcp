@@ -27,7 +27,7 @@ def get_garmin_client():
         raise ValueError(f"Błąd logowania: {str(e)}")
 
 def generate_date_range(start_date: str, end_date: str) -> list:
-    """Generuje listę dat pomiędzy start_date a end_date (max 31 dni)."""
+    """Generuje listę dat pomiędzy start_date a end_date (max 31 dni dla danych wellness)."""
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
     delta = end - start
@@ -35,7 +35,7 @@ def generate_date_range(start_date: str, end_date: str) -> list:
     if delta.days < 0:
         raise ValueError("start_date nie może być późniejsze niż end_date.")
     if delta.days > 31:
-        raise ValueError("Zakres dat ograniczony do 31 dni, aby uniknąć blokady konta Garmin.")
+        raise ValueError("Zakres dla danych wellness ograniczony do 31 dni w jednym zapytaniu.")
         
     return [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(delta.days + 1)]
 
@@ -50,7 +50,7 @@ def status() -> str:
 
 @mcp.tool()
 def get_activities(start_date: str, end_date: str) -> str:
-    """Pobiera listę aktywności w podanym zakresie dat YYYY-MM-DD."""
+    """Pobiera listę aktywności w BEZWZGLĘDNYM zakresie dat YYYY-MM-DD (brak limitu dni dla aktywności)."""
     try:
         client = get_garmin_client()
         activities = client.get_activities_by_date(start_date, end_date)
@@ -59,18 +59,8 @@ def get_activities(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_activity_details(activity_id: str) -> str:
-    """Pobiera szczegółowe metryki pojedynczej aktywności (Moc, Strefy HR/Mocy, Balans L/R, TSS, NP) na podstawie jej activity_id."""
-    try:
-        client = get_garmin_client()
-        details = client.get_activity_details(activity_id)
-        return json.dumps(details, ensure_ascii=False)
-    except Exception as e:
-        return f"Błąd: {str(e)}"
-
-@mcp.tool()
 def get_user_summary_history(start_date: str, end_date: str) -> str:
-    """Pobiera ogólne podsumowanie dnia (kroki, tętno) w zakresie YYYY-MM-DD (max 31 dni)."""
+    """Pobiera ogólne podsumowanie dnia w zakresie YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
         dates = generate_date_range(start_date, end_date)
