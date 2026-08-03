@@ -10,8 +10,35 @@ def init_garth():
     if not token_str:
         raise ValueError("Brak GARMINTOKENS w środowisku Rendera!")
     
-    # Ładowanie sesji base64 z wygenerowanego ciągu
-    garth.client.loads(token_str)
+    token_clean = token_str.strip().strip('"')
+
+    # 1. Próba natywnego wczytania (dla pełnych sesji z garth.client.dumps())
+    try:
+        garth.client.loads(token_clean)
+        return
+    except Exception:
+        pass
+
+    # 2. Bezpieczna obsługa samego tokena JWT (z przeglądarki lub struktury JSON)
+    if token_clean.startswith("{"):
+        try:
+            data = json.loads(token_clean)
+            if "oauth2_token" in data and isinstance(data["oauth2_token"], dict):
+                token_clean = data["oauth2_token"].get("access_token", token_clean)
+            else:
+                token_clean = data.get("access_token", token_clean)
+        except Exception:
+            pass
+
+    # Tworzymy bezpośredni token OAuth2 dla garth, omijając wymóg OAuth1
+    garth.client.configure(domain="garmin.com")
+    garth.client.oauth2_token = garth.http.OAuth2Token(
+        access_token=token_clean,
+        token_type="Bearer",
+        refresh_token=None,
+        expires_in=86400,
+        expires_at=2000000000
+    )
 
 @mcp.tool()
 def status() -> str:
