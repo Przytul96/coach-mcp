@@ -35,7 +35,7 @@ def generate_date_range(start_date: str, end_date: str) -> list:
     if delta.days < 0:
         raise ValueError("start_date nie może być późniejsze niż end_date.")
     if delta.days > 31:
-        raise ValueError("Zakres dat ograniczony do 31 dni, aby uniknąć blokady konta Garmin (429).")
+        raise ValueError("Zakres dat ograniczony do 31 dni, aby uniknąć blokady konta Garmin.")
         
     return [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(delta.days + 1)]
 
@@ -59,8 +59,8 @@ def get_activities(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_user_summary(start_date: str, end_date: str) -> str:
-    """Pobiera ogólne podsumowanie dnia (kroki, tętno spoczynkowe) w zakresie YYYY-MM-DD (max 31 dni)."""
+def get_user_summary_history(start_date: str, end_date: str) -> str:
+    """Pobiera ogólne podsumowanie dnia (kroki, tętno) w zakresie YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
         dates = generate_date_range(start_date, end_date)
@@ -70,7 +70,7 @@ def get_user_summary(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_sleep_data(start_date: str, end_date: str) -> str:
+def get_sleep_history(start_date: str, end_date: str) -> str:
     """Pobiera dane o śnie dla zakresu dat YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
@@ -81,7 +81,7 @@ def get_sleep_data(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_body_battery(start_date: str, end_date: str) -> str:
+def get_body_battery_history(start_date: str, end_date: str) -> str:
     """Pobiera dane Body Battery dla zakresu dat YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
@@ -92,7 +92,7 @@ def get_body_battery(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_training_status(start_date: str, end_date: str) -> str:
+def get_training_status_history(start_date: str, end_date: str) -> str:
     """Pobiera status treningowy dla zakresu dat YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
@@ -103,7 +103,7 @@ def get_training_status(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_hrv_data(start_date: str, end_date: str) -> str:
+def get_hrv_history(start_date: str, end_date: str) -> str:
     """Pobiera dane HRV dla zakresu dat YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
