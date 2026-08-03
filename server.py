@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime, timedelta
 from fastmcp import FastMCP
 from garminconnect import Garmin
 
@@ -23,7 +24,20 @@ def get_garmin_client():
         _garmin_client = client
         return client
     except Exception as e:
-        raise ValueError(f"Błąd logowania bezpośrednio z Rendera: {str(e)}")
+        raise ValueError(f"Błąd logowania: {str(e)}")
+
+def generate_date_range(start_date: str, end_date: str) -> list:
+    """Generuje listę dat pomiędzy start_date a end_date (max 31 dni)."""
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    delta = end - start
+    
+    if delta.days < 0:
+        raise ValueError("start_date nie może być późniejsze niż end_date.")
+    if delta.days > 31:
+        raise ValueError("Zakres dat ograniczony do 31 dni, aby uniknąć blokady konta Garmin (429).")
+        
+    return [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(delta.days + 1)]
 
 @mcp.tool()
 def status() -> str:
@@ -31,16 +45,6 @@ def status() -> str:
     try:
         client = get_garmin_client()
         return f"Połączono pomyślnie! Zalogowany użytkownik: {client.full_name} ({client.display_name})"
-    except Exception as e:
-        return f"Błąd: {str(e)}"
-
-@mcp.tool()
-def get_user_summary(date_str: str) -> str:
-    """Pobiera ogólne podsumowanie dnia (kroki, tętno) dla daty YYYY-MM-DD."""
-    try:
-        client = get_garmin_client()
-        stats = client.get_user_summary(date_str)
-        return json.dumps(stats, ensure_ascii=False)
     except Exception as e:
         return f"Błąd: {str(e)}"
 
@@ -55,41 +59,56 @@ def get_activities(start_date: str, end_date: str) -> str:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_sleep_data(date_str: str) -> str:
-    """Pobiera dane o śnie dla daty YYYY-MM-DD."""
+def get_user_summary(start_date: str, end_date: str) -> str:
+    """Pobiera ogólne podsumowanie dnia (kroki, tętno spoczynkowe) w zakresie YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
-        sleep_data = client.get_sleep_data(date_str)
-        return json.dumps(sleep_data, ensure_ascii=False)
+        dates = generate_date_range(start_date, end_date)
+        data = {d: client.get_user_summary(d) for d in dates}
+        return json.dumps(data, ensure_ascii=False)
     except Exception as e:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_body_battery(date_str: str) -> str:
-    """Pobiera dane Body Battery dla daty YYYY-MM-DD."""
+def get_sleep_data(start_date: str, end_date: str) -> str:
+    """Pobiera dane o śnie dla zakresu dat YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
-        bb_data = client.get_body_battery(date_str)
-        return json.dumps(bb_data, ensure_ascii=False)
+        dates = generate_date_range(start_date, end_date)
+        data = {d: client.get_sleep_data(d) for d in dates}
+        return json.dumps(data, ensure_ascii=False)
     except Exception as e:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_training_status(date_str: str) -> str:
-    """Pobiera status treningowy dla daty YYYY-MM-DD."""
+def get_body_battery(start_date: str, end_date: str) -> str:
+    """Pobiera dane Body Battery dla zakresu dat YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
-        status_data = client.get_training_status(date_str)
-        return json.dumps(status_data, ensure_ascii=False)
+        dates = generate_date_range(start_date, end_date)
+        data = {d: client.get_body_battery(d) for d in dates}
+        return json.dumps(data, ensure_ascii=False)
     except Exception as e:
         return f"Błąd: {str(e)}"
 
 @mcp.tool()
-def get_hrv_data(date_str: str) -> str:
-    """Pobiera dane HRV dla daty YYYY-MM-DD."""
+def get_training_status(start_date: str, end_date: str) -> str:
+    """Pobiera status treningowy dla zakresu dat YYYY-MM-DD (max 31 dni)."""
     try:
         client = get_garmin_client()
-        hrv = client.get_hrv_data(date_str)
-        return json.dumps(hrv, ensure_ascii=False)
+        dates = generate_date_range(start_date, end_date)
+        data = {d: client.get_training_status(d) for d in dates}
+        return json.dumps(data, ensure_ascii=False)
+    except Exception as e:
+        return f"Błąd: {str(e)}"
+
+@mcp.tool()
+def get_hrv_data(start_date: str, end_date: str) -> str:
+    """Pobiera dane HRV dla zakresu dat YYYY-MM-DD (max 31 dni)."""
+    try:
+        client = get_garmin_client()
+        dates = generate_date_range(start_date, end_date)
+        data = {d: client.get_hrv_data(d) for d in dates}
+        return json.dumps(data, ensure_ascii=False)
     except Exception as e:
         return f"Błąd: {str(e)}"
