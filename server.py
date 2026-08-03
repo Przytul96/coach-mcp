@@ -30,12 +30,16 @@ def init_garth():
         except Exception:
             pass
 
-    # Tworzymy token OAuth2 z pustym stringiem dla refresh_token, co przechodzi walidację Garth
+    # Tworzymy kompletny obiekt OAuth2Token spełniający w 100% schemat walidacji garth
     garth.client.configure(domain="garmin.com")
     garth.client.oauth2_token = garth.http.OAuth2Token(
+        scope="read write",
+        jti="",
         access_token=token_clean,
         token_type="Bearer",
         refresh_token="",
+        refresh_token_expires_in=0,
+        refresh_token_expires_at=0,
         expires_in=86400,
         expires_at=2000000000
     )
