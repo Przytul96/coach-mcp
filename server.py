@@ -12,14 +12,14 @@ def init_garth():
     
     token_clean = token_str.strip().strip('"')
 
-    # 1. Próba natywnego wczytania (dla pełnych sesji z garth.client.dumps())
+    # 1. Próba natywnego wczytania (dla pełnych sesji)
     try:
         garth.client.loads(token_clean)
         return
     except Exception:
         pass
 
-    # 2. Bezpieczna obsługa samego tokena JWT (z przeglądarki lub struktury JSON)
+    # 2. Wyciągnięcie aktywnego tokena Bearer
     if token_clean.startswith("{"):
         try:
             data = json.loads(token_clean)
@@ -30,12 +30,12 @@ def init_garth():
         except Exception:
             pass
 
-    # Tworzymy bezpośredni token OAuth2 dla garth, omijając wymóg OAuth1
+    # Tworzymy token OAuth2 z pustym stringiem dla refresh_token, co przechodzi walidację Garth
     garth.client.configure(domain="garmin.com")
     garth.client.oauth2_token = garth.http.OAuth2Token(
         access_token=token_clean,
         token_type="Bearer",
-        refresh_token=None,
+        refresh_token="",
         expires_in=86400,
         expires_at=2000000000
     )
