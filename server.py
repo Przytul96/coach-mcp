@@ -4,11 +4,7 @@ from datetime import datetime, timedelta
 from fastmcp import FastMCP
 from garminconnect import Garmin
 
-# Zaktualizowana inicjalizacja z własną ikoną i nazwą
-mcp = FastMCP(
-    "Garmin Coach",
-    icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Garmin_logo.svg/512px-Garmin_logo.svg.png"
-)
+mcp = FastMCP("Garmin Coach")
 _garmin_client = None
 
 def get_garmin_client():
