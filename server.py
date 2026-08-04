@@ -4,7 +4,11 @@ from datetime import datetime, timedelta
 from fastmcp import FastMCP
 from garminconnect import Garmin
 
-mcp = FastMCP("Garmin MCP")
+# Zaktualizowana inicjalizacja z własną ikoną i nazwą
+mcp = FastMCP(
+    "Garmin Coach",
+    icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Garmin_logo.svg/512px-Garmin_logo.svg.png"
+)
 _garmin_client = None
 
 def get_garmin_client():
@@ -110,5 +114,15 @@ def get_hrv_history(start_date: str, end_date: str) -> str:
         dates = generate_date_range(start_date, end_date)
         data = {d: client.get_hrv_data(d) for d in dates}
         return json.dumps(data, ensure_ascii=False)
+    except Exception as e:
+        return f"Błąd: {str(e)}"
+
+@mcp.tool()
+def get_activity_laps(activity_id: str) -> str:
+    """Pobiera szczegółowe dane poszczególnych okrążeń (laps/splits) dla konkretnej aktywności po jej activity_id. Zawiera moc, HR, czas i dystans dla każdego okrążenia."""
+    try:
+        client = get_garmin_client()
+        laps = client.get_activity_splits(activity_id)
+        return json.dumps(laps, ensure_ascii=False)
     except Exception as e:
         return f"Błąd: {str(e)}"
